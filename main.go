@@ -4,14 +4,16 @@ import (
 	"io"
 	"net/http"
 	"os"
-	database "tugasbe/Database"
-	models "tugasbe/Models"
+	database "tugaswp/Database"
+	models "tugaswp/Models"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
 	e := echo.New()
+	e.Use(middleware.Logger())
 
 	database.Connect()
 	e.Static("/products", "products")
@@ -64,7 +66,7 @@ func main() {
 		var productHistory []models.DBGetProduct
 		var err error
 		id := c.Param("id")
-		err = database.DB.Raw("SELECT product_history.id, user.nama, product.nama_produk, product.harga FROM product_history LEFT JOIN user ON product_history.user_id = user.id LEFT JOIN product ON product_history.id = user.id WHERE user_id = ?", id).Find(&productHistory).Error
+		err = database.DB.Raw("SELECT product_history.id, user.nama, product.nama_produk, product.harga FROM product_history LEFT JOIN user ON product_history.user_id = user.id LEFT JOIN product ON product_history.product_id = product.id WHERE user.id = ?", id).Find(&productHistory).Error
 		if err != nil {
 			return c.JSON(500, echo.Map{
 				"message": err.Error(),
@@ -97,6 +99,9 @@ func main() {
 		file, err := c.FormFile("image")
 		if err != nil {
 			return err
+		}
+		if file != nil {
+
 		}
 		src, err := file.Open()
 		if err != nil {
